@@ -1,5 +1,13 @@
-import time, traceback, requests, uuid, html, sys, logging
+import time
+import traceback
+import requests
+import uuid
+import html
+import sys
+import logging
 from bs4 import BeautifulSoup
+from flask import Flask
+import threading
 
 # ========== CONFIG ==========
 BOT_TOKEN = "8322782484:AAFabKLjwzaexfBwg18Jj8LBoDB6kc7MyUs"
@@ -516,7 +524,26 @@ def run_long_polling():
                 error_count = 0
             time.sleep(3)
 
+# Simple health check server for Koyeb
+def run_health_server():
+    app = Flask(__name__)
+    
+    @app.route('/')
+    def health_check():
+        return "🤖 Movie Search Bot is running!", 200
+    
+    @app.route('/health')
+    def health():
+        return "OK", 200
+    
+    # Port 8000 এ server run করবে (Koyeb এর default port)
+    app.run(host='0.0.0.0', port=8000, debug=False, use_reloader=False)
+
 if __name__ == "__main__":
+    # Health check server আলাদা thread এ start করুন
+    health_thread = threading.Thread(target=run_health_server, daemon=True)
+    health_thread.start()
+    
     logger.info("🚀 Starting Movie Search Bot...")
     while True:
         try:
